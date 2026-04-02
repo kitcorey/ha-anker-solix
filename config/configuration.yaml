@@ -1,0 +1,10 @@
+# Minimal Home Assistant configuration for development/testing.
+# The anker_solix integration uses config_flow, so add it through the UI:
+# Settings > Devices & Services > Add Integration > search "Anker Solix"
+
+default_config:
+
+logger:
+  default: info
+  logs:
+    custom_components.anker_solix: debug

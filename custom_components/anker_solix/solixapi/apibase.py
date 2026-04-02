@@ -929,15 +929,24 @@ class AnkerSolixBaseApi:
                         elif key in ["output_cutoff_data", "min_soc"]:
                             device_mqtt["power_cutoff"] = str(value)
                         elif key == "set_port_switch_select":
-                            # update A2345 port state based on toggle command or confirmation msg for cache update upon passive change
-                            if (
-                                switch_name := {
+                            # update port state based on toggle command or confirmation msg for cache update upon passive change
+                            # A91B2 uses port 0/1 for AC outlets; A2345 and others use 0-4 for USB ports
+                            port_switch_map = (
+                                {
+                                    0: "ac_1_switch",
+                                    1: "ac_2_switch",
+                                }
+                                if device.get("device_pn") == "A91B2"
+                                else {
                                     0: "usbc_1_switch",
                                     1: "usbc_2_switch",
                                     2: "usbc_3_switch",
                                     3: "usbc_4_switch",
                                     4: "usba_switch",
-                                }.get(value)
+                                }
+                            )
+                            if (
+                                switch_name := port_switch_map.get(value)
                             ) and (
                                 switch_value := values.get("set_port_switch")
                             ) is not None:
