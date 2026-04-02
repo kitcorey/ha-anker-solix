@@ -489,8 +489,6 @@ class AnkerSolixApiClient:
                         self._intervalcount = self._deviceintervals
                         self.last_device_refresh = datetime.now().astimezone()
                         self.active_device_refresh = False
-                        # ensure MQTT session status is as required
-                        await self.check_mqtt_session()
                     elif self.startup and not self.deferred_data:
                         self.active_device_refresh = True
                         # Fetch deferred energy skipped from first device refresh
@@ -505,6 +503,8 @@ class AnkerSolixApiClient:
                         self.deferred_data = True
                         self.startup = False
                         self.active_device_refresh = False
+                    # ensure MQTT session status is as required on every poll cycle
+                    await self.check_mqtt_session()
                     self.last_site_refresh = datetime.now().astimezone()
                     if not self._testmode:
                         _LOGGER.debug(
@@ -798,7 +798,9 @@ class AnkerSolixApiClient:
                     for mdev in self.mqtt_devices.values():
                         if mdev.device.get("mqtt_status_request"):
                             await mdev.status_request()
-                        await mdev.realtime_trigger()
+                        await mdev.realtime_trigger(
+                            timeout=self._trigger_timeout
+                        )
                     # Note: The method for update callback will be checked and set during coordinator updates
                 else:
                     _LOGGER.error(
@@ -815,6 +817,11 @@ class AnkerSolixApiClient:
                     ):
                         # clear mqtt data cache to avoid orphaned data
                         mdev.mqttdata.clear()
+                # Re-send realtime trigger on each poll to keep 0303 data flowing
+                for mdev in self.mqtt_devices.values():
+                    await mdev.realtime_trigger(
+                        timeout=self._trigger_timeout
+                    )
 
     def subscribe_device(self, deviceDict: dict) -> bool:
         """Subscribe a device to MQTT messages."""
