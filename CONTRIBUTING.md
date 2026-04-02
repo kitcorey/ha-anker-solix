@@ -46,6 +46,63 @@ People *love* thorough bug reports. I'm not even kidding.
 
 Use [black](https://github.com/ambv/black) to make sure the code follows the style.
 
+## Running with Docker Compose
+
+The easiest way to test changes is with Docker Compose, which runs an isolated Home Assistant instance with the integration mounted in.
+
+### Prerequisites
+
+- Docker and Docker Compose v2+
+
+### Quick start
+
+1. Copy the environment template:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Start Home Assistant:
+   ```bash
+   docker compose up -d
+   ```
+
+3. Open http://localhost:8123 in your browser.
+
+4. On first run, create an owner account, then go to
+   **Settings > Devices & Services > Add Integration** and search
+   for "Anker Solix".
+
+### Development workflow
+
+- Edit files under `custom_components/anker_solix/` as usual.
+- Restart to pick up changes:
+  ```bash
+  docker compose restart
+  ```
+- View logs:
+  ```bash
+  docker compose logs -f homeassistant
+  ```
+- Stop:
+  ```bash
+  docker compose down
+  ```
+
+### Testing against a specific HA version
+
+Edit `.env` and set:
+```
+HA_VERSION=2025.3.4
+```
+Then `docker compose up -d` (it will pull the new image).
+
+### Resetting state
+
+The `config/` directory stores Home Assistant runtime state (database,
+authentication, etc.) and is gitignored. Only `config/configuration.yaml`
+is tracked. To start fresh, stop the container and delete the `config/`
+directory contents (except `configuration.yaml`).
+
 ## Test your code modification
 
 This custom component is based on [integration_blueprint template](https://github.com/ludeeus/integration_blueprint).
